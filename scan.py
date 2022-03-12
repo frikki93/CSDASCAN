@@ -2,6 +2,8 @@ import time
 import ipaddress
 import random
 import socket
+import datetime
+
 
 # Collect all ips from CIDR and the top 10 ports according to nmap
 ip_list = [str(ip) for ip in ipaddress.IPv4Network('5.23.64.0/20')]
@@ -33,19 +35,17 @@ while len(host_port_list) > 0:
     if len(host_port_list[random_index][1]) == 0:
         del(host_port_list[random_index])
 
-open_list = []
-closed_list = []
+open_closed_list = []
 # Go through randomized list and scan with 0.5 seconds delay
 for host_port in randomized_list:
-    time.sleep(0.5)
+    time.sleep(0.5 + random.uniform(0, 0.2))
     try:
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         s.settimeout(1)
         res = s.connect_ex((host_port[0], host_port[1]))  
-        
         if res == 0:
             print("Ip: {} port: {} is open".format(host_port[0], host_port[1]))
-            open_list.append(host_port)
+            open_closed_list.append([host_port, datetime.datetime.now(), "Y"])
         elif res == 1:
             print("Insufficient packet buffers available to complete the operation")
         elif res == 2:
@@ -68,7 +68,7 @@ for host_port in randomized_list:
             print("The requested operation cannot be performed because a similar operation is already in progress on this socket")
         elif res == 11:
             print("Ip: {} is in use but port: {} is not present".format(host_port[0], host_port[1]))
-            closed_list.append(host_port)
+            open_closed_list.append([host_port, datetime.datetime.now(), "Y"])
         elif res == 12:
             print("The datagram is too large to be sent")
         elif res == 13:
@@ -95,20 +95,19 @@ for host_port in randomized_list:
             print("There was an error in the IP layer.")
         else:
             print("Ip: {} port: {} is not responding or closed".format(host_port[0], host_port[1]))
+            open_closed_list.append([host_port, datetime.datetime.now(), "N"])
         s.close()
         
-
     except socket.gaierror:
         print("Ip: {} port: {} is not responding".format(socket.inet_ntoa(host_port[0]), host_port[1]))
+        open_closed_list.append([host_port, datetime.datetime.now(), "N"])
         s.close()
     except socket.error:
         print("\ Server not responding !!!!")
         s.close()
 
-with open("open_list.txt", "w+") as writer:
-    for ip_port in open_list:
-        writer.write(ip_port[0] + ":" + str(ip_port[1]) + "\n")
-
-with open("closed_list.txt", "w+") as writer:
-    for ip_port in closed_list:
-        writer.write(ip_port[0] + ":" + str(ip_port[1]) + "\n")
+with open("open_closed_list.csv", "w+") as writer:
+    #host ip, port number scanned, timestamp, Y/N response
+    writer.write("host ip,port number scanned,timestamp,Y/N response\n")
+    for ip_port in open_closed_list:
+        writer.write(ip_port[0][0] + "," + str(ip_port[0][1]) + "," + str(ip_port[1]) + "," + ip_port[2] + "\n")
