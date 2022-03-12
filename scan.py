@@ -34,6 +34,7 @@ while len(host_port_list) > 0:
         del(host_port_list[random_index])
 
 open_list = []
+closed_list = []
 # Go through randomized list and scan with 0.5 seconds delay
 for host_port in randomized_list:
     time.sleep(0.5)
@@ -67,6 +68,7 @@ for host_port in randomized_list:
             print("The requested operation cannot be performed because a similar operation is already in progress on this socket")
         elif res == 11:
             print("Ip: {} is in use but port: {} is not present".format(host_port[0], host_port[1]))
+            closed_list.append(host_port)
         elif res == 12:
             print("The datagram is too large to be sent")
         elif res == 13:
@@ -105,4 +107,8 @@ for host_port in randomized_list:
 
 with open("open_list.txt", "w+") as writer:
     for ip_port in open_list:
+        writer.write(ip_port[0] + ":" + str(ip_port[1]) + "\n")
+
+with open("closed_list.txt", "w+") as writer:
+    for ip_port in closed_list:
         writer.write(ip_port[0] + ":" + str(ip_port[1]) + "\n")
