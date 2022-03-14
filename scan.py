@@ -68,7 +68,7 @@ for host_port in randomized_list:
             print("The requested operation cannot be performed because a similar operation is already in progress on this socket")
         elif res == 11:
             print("Ip: {} is in use but port: {} is not present".format(host_port[0], host_port[1]))
-            open_closed_list.append([host_port, datetime.datetime.now(), "Y"])
+            open_closed_list.append([host_port, datetime.datetime.now(), "N"])
         elif res == 12:
             print("The datagram is too large to be sent")
         elif res == 13:
@@ -95,7 +95,7 @@ for host_port in randomized_list:
             print("There was an error in the IP layer.")
         else:
             print("Ip: {} port: {} is not responding or closed".format(host_port[0], host_port[1]))
-            open_closed_list.append([host_port, datetime.datetime.now(), "N"])
+            open_closed_list.append([host_port, datetime.datetime.now(), "Y"])
         s.close()
         
     except socket.gaierror:
